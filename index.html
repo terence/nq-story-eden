@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Story Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #222; color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background: #333; border-radius: 10px; box-shadow: 0 2px 8px #0008; padding: 32px; }
+        h1 { text-align: center; }
+        .story { margin: 24px 0; font-size: 1.2em; }
+        .choices { display: flex; flex-direction: column; gap: 16px; }
+        button { background: #4caf50; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-size: 1em; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #388e3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Adventure in Eden</h1>
+        <div id="inventory" style="margin-bottom: 16px; font-size: 1em; color: #ffd700;"></div>
+        <div class="story" id="story"></div>
+        <div class="choices" id="choices"></div>
+    </div>
+    <script>
+        let inventory = [];
+
+        function updateInventoryDisplay() {
+            const invDiv = document.getElementById('inventory');
+            if (inventory.length === 0) {
+                invDiv.textContent = 'Inventory: (empty)';
+            } else {
+                invDiv.textContent = 'Inventory: ' + inventory.join(', ');
+            }
+        }
+
+        const storyNodes = {
+            start: {
+                text: "You wake up in a mysterious garden called Eden. The air is fresh, and you see two paths ahead. One leads into a lush forest, the other toward a sparkling river.",
+                choices: [
+                    { text: "Enter the forest", next: "forest" },
+                    { text: "Walk to the river", next: "river" }
+                ]
+            },
+            forest: {
+                text: "The forest is alive with the sounds of birds. Suddenly, you spot a glowing fruit on a tree. Nearby, a snake slithers from the undergrowth and speaks: 'Curious, aren't you? The fruit holds secrets.'",
+                choices: [
+                    { text: "Talk to the snake", next: "snake" },
+                    { text: "Pick the fruit", next: "fruit" },
+                    { text: "Ignore both and go deeper", next: "deeper_forest" }
+                ]
+            },
+                        snake: {
+                            text: "The snake coils around a branch and whispers: 'Many have come for the fruit, but few understand its power. Will you trust me to show you a shortcut through Eden?'",
+                            choices: [
+                                { text: "Trust the snake", next: "snake_shortcut" },
+                                { text: "Refuse and pick the fruit", next: "fruit" },
+                                { text: "Refuse and go deeper alone", next: "deeper_forest" }
+                            ]
+                        },
+                        snake_shortcut: {
+                            text: "You follow the snake through winding roots and hidden trails. Suddenly, you find yourself at a secret garden filled with rare flowers and a shimmering portal. The snake nods: 'You have found the heart of Eden.' You spot a mysterious feather on the ground and pick it up.",
+                            addItem: "Mysterious Feather",
+                            choices: [
+                                { text: "Enter the portal", next: "portal_ending" },
+                                { text: "Thank the snake and explore", next: "explore_garden" }
+                            ]
+                        },
+                        portal_ending: {
+                            text: "You step through the portal and are transported home, carrying memories of your magical journey. Congratulations, you found a secret ending!",
+                            choices: [
+                                { text: "Play again", next: "start" }
+                            ]
+                        },
+                        explore_garden: {
+                            text: "You wander the secret garden, discovering wonders and making friends with the animals. You decide to stay a while, enjoying the peace of Eden.",
+                            choices: [
+                                { text: "Play again", next: "start" }
+                            ]
+                        },
+            river: {
+                text: "The river sparkles in the sunlight. You see a boat tied to a post and a bridge crossing to the other side.",
+                choices: [
+                    { text: "Take the boat", next: "boat" },
+                    { text: "Cross the bridge", next: "bridge" }
+                ]
+            },
+            fruit: {
+                text: "You pick the fruit and take a bite. Instantly, you feel a surge of energy and gain the ability to understand the animals! A wise owl offers to guide you. You keep the glowing fruit's core as a memento.",
+                addItem: "Glowing Fruit Core",
+                choices: [
+                    { text: "Follow the owl", next: "owl" },
+                    { text: "Explore alone", next: "alone" }
+                ]
+            },
+            deeper_forest: {
+                text: "You venture deeper and find a hidden door in a tree. Do you open it?",
+                choices: [
+                    { text: "Open the door", next: "door" },
+                    { text: "Turn back", next: "start" }
+                ]
+            },
+            boat: {
+                text: "You row the boat and discover a small island with a treasure chest.",
+                choices: [
+                    { text: "Open the chest", next: "chest" },
+                    { text: "Return to shore", next: "river" }
+                ]
+            },
+            bridge: {
+                text: "Crossing the bridge, you meet a friendly fox who offers you a riddle. If you answer correctly, he will show you a secret path.",
+                choices: [
+                    { text: "Accept the riddle", next: "riddle" },
+                    { text: "Decline and move on", next: "move_on" }
+                ]
+            },
+            owl: {
+                text: "The owl leads you to a clearing where you find a portal home. Congratulations, you have completed your adventure!",
+                choices: [
+                    { text: "Play again", next: "start" }
+                ]
+            },
+            alone: {
+                text: "You wander alone and eventually find your way back to the garden's entrance. The adventure ends here.",
+                choices: [
+                    { text: "Play again", next: "start" }
+                ]
+            },
+            door: {
+                text: "Inside the tree, you find a magical library filled with ancient books. You spend hours reading and gain great wisdom.",
+                choices: [
+                    { text: "Play again", next: "start" }
+                ]
+            },
+            chest: {
+                text: "The chest contains a map of Eden, revealing all its secrets. You take the map and become the new explorer of the garden!",
+                addItem: "Map of Eden",
+                choices: [
+                    { text: "Play again", next: "start" }
+                ]
+            },
+            riddle: {
+                text: "The fox asks: 'What has roots as nobody sees, is taller than trees, up, up it goes, and yet never grows?'",
+                choices: [
+                    { text: "Answer: A mountain", next: "correct" },
+                    { text: "Answer: A river", next: "incorrect" }
+                ]
+            },
+            move_on: {
+                text: "You move on and find a peaceful spot to rest. The adventure ends with a moment of tranquility.",
+                choices: [
+                    { text: "Play again", next: "start" }
+                ]
+            },
+            correct: {
+                text: "'Correct!' says the fox, and he shows you a hidden path to a beautiful meadow. You have found a secret ending!",
+                choices: [
+                    { text: "Play again", next: "start" }
+                ]
+            },
+            incorrect: {
+                text: "'That's not right,' says the fox. He disappears, and you find yourself back at the river.",
+                choices: [
+                    { text: "Return to the river", next: "river" }
+                ]
+            }
+        };
+
+        function showNode(nodeKey) {
+            const node = storyNodes[nodeKey];
+            // Add item to inventory if present and not already owned
+            if (node.addItem && !inventory.includes(node.addItem)) {
+                inventory.push(node.addItem);
+            }
+            document.getElementById('story').textContent = node.text;
+            updateInventoryDisplay();
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+            node.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.textContent = choice.text;
+                btn.onclick = () => showNode(choice.next);
+                choicesDiv.appendChild(btn);
+            });
+        }
+
+        // Reset inventory on new game
+        function startGame() {
+            inventory = [];
+            updateInventoryDisplay();
+            showNode('start');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateInventoryDisplay();
+            showNode('start');
+            // Intercept Play again buttons
+            const container = document.querySelector('.container');
+            container.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' && e.target.textContent === 'Play again') {
+                    startGame();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
